@@ -16,7 +16,7 @@ configurations {
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
     compile "com.github.VictorAlbertos:RxCache:0.4.2"
-    compile "io.reactivex:rxjava:1.0.14"
+    compile "io.reactivex:rxjava:1.1.0"
 
     compile "com.squareup.retrofit:adapter-rxjava:2.0.0-beta1"
     compile "com.squareup.retrofit:converter-gson:2.0.0-beta1"
