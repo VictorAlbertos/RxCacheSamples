@@ -15,7 +15,9 @@ configurations {
 
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
-    compile "com.github.VictorAlbertos:RxCache:0.4.8"
+    compile ("com.github.VictorAlbertos:RxCache:0.4.9") {
+        exclude module: 'guava'
+    }
     compile "io.reactivex:rxjava:1.1.0"
 
     compile "com.squareup.retrofit:adapter-rxjava:2.0.0-beta1"
