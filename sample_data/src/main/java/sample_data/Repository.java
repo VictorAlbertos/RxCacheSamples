@@ -7,8 +7,9 @@ import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
-import io.rx_cache.Invalidator;
-import io.rx_cache.InvalidatorDynamicKey;
+import io.rx_cache.DynamicKey;
+import io.rx_cache.EvictDynamicKey;
+import io.rx_cache.EvictProvider;
 import io.rx_cache.Reply;
 import io.rx_cache.internal.RxCache;
 import retrofit.GsonConverterFactory;
@@ -45,26 +46,11 @@ public class Repository {
     }
 
     public Observable<Reply<List<User>>> getUsers(int idLastUserQueried, final boolean update) {
-        return cacheProviders.getUsers(idLastUserQueried, restApi.getUsers(idLastUserQueried, USERS_PER_PAGE), new Invalidator() {
-            @Override
-            public boolean invalidate() {
-                return update;
-            }
-        });
+        return cacheProviders.getUsers(restApi.getUsers(idLastUserQueried, USERS_PER_PAGE), new DynamicKey(idLastUserQueried), new EvictDynamicKey(update));
     }
 
     public Observable<Reply<List<Repo>>> getRepos(final String userName, final boolean update) {
-        return cacheProviders.getRepos(restApi.getRepos(userName), userName, new InvalidatorDynamicKey() {
-            @Override
-            public Object dynamicKey() {
-                return userName;
-            }
-
-            @Override
-            public boolean invalidate() {
-                return update;
-            }
-        });
+        return cacheProviders.getRepos(restApi.getRepos(userName), new DynamicKey(userName), new EvictDynamicKey(update));
     }
 
     public Observable<Reply<User>> loginUser(final String userName) {
@@ -80,11 +66,7 @@ public class Repository {
                     }
                 }
 
-                return cacheProviders.getCurrentUser(Observable.just(userResponse.body()), new Invalidator() {
-                    @Override public boolean invalidate() {
-                        return true;
-                    }
-                });
+                return cacheProviders.getCurrentUser(Observable.just(userResponse.body()), new EvictProvider(true));
             }
         }).flatMap(new Func1<Observable<Reply<User>>, Observable<Reply<User>>>() {
             @Override public Observable<Reply<User>> call(Observable<Reply<User>> replyObservable) {
@@ -98,27 +80,23 @@ public class Repository {
     }
 
     public Observable<String> logoutUser() {
-        return cacheProviders.getCurrentUser(Observable.<User>just(null), new Invalidator() {
-            @Override public boolean invalidate() {
-                return true;
-            }
-        }).map(new Func1<Reply<User>, String>() {
-            @Override public String call(Reply<User> user) {
-                return "Logout";
-            }
-        }).onErrorReturn(new Func1<Throwable, String>() {
-            @Override public String call(Throwable throwable) {
-                return "Logout";
-            }
-        });
+        return cacheProviders.getCurrentUser(Observable.<User>just(null), new EvictProvider(true))
+                .map(new Func1<Reply<User>, String>() {
+                    @Override
+                    public String call(Reply<User> user) {
+                        return "Logout";
+                    }
+                })
+                .onErrorReturn(new Func1<Throwable, String>() {
+                    @Override
+                    public String call(Throwable throwable) {
+                        return "Logout";
+                    }
+                });
     }
 
     public Observable<Reply<User>> getLoggedUser(boolean invalidate) {
-        Observable<Reply<User>> cachedUser = cacheProviders.getCurrentUser(Observable.<User>just(null), new Invalidator() {
-            @Override public boolean invalidate() {
-                return false;
-            }
-        });
+        Observable<Reply<User>> cachedUser = cacheProviders.getCurrentUser(Observable.<User>just(null), new EvictProvider(false));
 
         Observable<Reply<User>> freshUser = cachedUser.flatMap(new Func1<Reply<User>, Observable<Reply<User>>>() {
             @Override public Observable<Reply<User>> call(Reply<User> userReply) {
