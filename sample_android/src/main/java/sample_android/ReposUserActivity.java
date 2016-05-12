@@ -8,13 +8,14 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import io.rx_cache.Reply;
+import rx.Subscriber;
 import rx.android.schedulers.AndroidSchedulers;
-import rx.functions.Action1;
 import rx.schedulers.Schedulers;
 import sample_data.entities.Repo;
 import sample_data.entities.User;
@@ -61,8 +62,14 @@ public class ReposUserActivity extends BaseActivity {
         subscription = getRepository().getRepos(selectedUser.getLogin(), pullToRefresh)
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new Action1<Reply<List<Repo>>>() {
-                    @Override public void call(Reply<List<Repo>> reply) {
+                .subscribe(new Subscriber<Reply<List<Repo>>>() {
+                    @Override public void onCompleted() {}
+
+                    @Override public void onError(Throwable e) {
+                        Toast.makeText(ReposUserActivity.this, e.getMessage(), Toast.LENGTH_SHORT).show();
+                    }
+
+                    @Override public void onNext(Reply<List<Repo>> reply) {
                         if (pullToRefresh) repos.clear();
 
                         for (Repo repo : reply.getData()) {

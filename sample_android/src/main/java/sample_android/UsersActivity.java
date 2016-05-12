@@ -10,6 +10,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.paginate.Paginate;
 import com.squareup.picasso.Picasso;
@@ -18,8 +19,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import io.rx_cache.Reply;
+import rx.Subscriber;
 import rx.android.schedulers.AndroidSchedulers;
-import rx.functions.Action1;
 import rx.schedulers.Schedulers;
 import sample_data.Repository;
 import sample_data.entities.User;
@@ -84,8 +85,14 @@ public class UsersActivity extends BaseActivity {
         subscription = getRepository().getUsers(lastUserId, pullToRefresh)
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new Action1<Reply<List<User>>>() {
-                    @Override public void call(Reply<List<User>> reply) {
+                .subscribe(new Subscriber<Reply<List<User>>>() {
+                    @Override public void onCompleted() {}
+
+                    @Override public void onError(Throwable e) {
+                        Toast.makeText(UsersActivity.this, e.getMessage(), Toast.LENGTH_SHORT).show();
+                    }
+
+                    @Override public void onNext(Reply<List<User>> reply) {
                         if (pullToRefresh) users.clear();
 
                         for (User user : reply.getData()) {
