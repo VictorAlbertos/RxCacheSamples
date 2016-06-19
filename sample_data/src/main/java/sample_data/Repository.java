@@ -3,6 +3,7 @@ package sample_data;
 import com.google.gson.Gson;
 import com.google.gson.JsonParseException;
 
+import io.victoralbertos.jolyglot.GsonSpeaker;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
@@ -35,7 +36,7 @@ public class Repository {
 
     public Repository(File cacheDir) {
         cacheProviders = new RxCache.Builder()
-                .persistence(cacheDir)
+                .persistence(cacheDir, new GsonSpeaker())
                 .using(CacheProviders.class);
 
         restApi = new Retrofit.Builder()
