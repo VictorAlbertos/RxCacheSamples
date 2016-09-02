@@ -2,21 +2,19 @@ package sample_data;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonParseException;
-
-import io.victoralbertos.jolyglot.GsonSpeaker;
-import java.io.File;
-import java.io.IOException;
-import java.util.List;
-
 import io.rx_cache.DynamicKey;
 import io.rx_cache.EvictDynamicKey;
 import io.rx_cache.EvictProvider;
 import io.rx_cache.Reply;
 import io.rx_cache.internal.RxCache;
-import retrofit.GsonConverterFactory;
-import retrofit.Response;
-import retrofit.Retrofit;
-import retrofit.RxJavaCallAdapterFactory;
+import io.victoralbertos.jolyglot.GsonSpeaker;
+import java.io.File;
+import java.io.IOException;
+import java.util.List;
+import retrofit2.Response;
+import retrofit2.Retrofit;
+import retrofit2.adapter.rxjava.RxJavaCallAdapterFactory;
+import retrofit2.converter.gson.GsonConverterFactory;
 import rx.Observable;
 import rx.functions.Func1;
 import sample_data.cache.CacheProviders;
@@ -58,7 +56,7 @@ public class Repository {
         return restApi.getUser(userName).map(new Func1<Response<User>, Observable<Reply<User>>>() {
             @Override public Observable<Reply<User>> call(Response<User> userResponse) {
 
-                if (!userResponse.isSuccess()) {
+                if (!userResponse.isSuccessful()) {
                     try {
                         ResponseError responseError = new Gson().fromJson(userResponse.errorBody().string(), ResponseError.class);
                         throw new RuntimeException(responseError.getMessage());

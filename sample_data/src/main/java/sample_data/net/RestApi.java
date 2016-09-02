@@ -2,11 +2,11 @@ package sample_data.net;
 
 import java.util.List;
 
-import retrofit.Response;
-import retrofit.http.GET;
-import retrofit.http.Headers;
-import retrofit.http.Path;
-import retrofit.http.Query;
+import retrofit2.Response;
+import retrofit2.http.GET;
+import retrofit2.http.Headers;
+import retrofit2.http.Path;
+import retrofit2.http.Query;
 import rx.Observable;
 import sample_data.entities.Repo;
 import sample_data.entities.User;
