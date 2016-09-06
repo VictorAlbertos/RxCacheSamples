@@ -11,17 +11,14 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
-
 import com.paginate.Paginate;
 import com.squareup.picasso.Picasso;
-
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.functions.Consumer;
+import io.reactivex.schedulers.Schedulers;
+import io.rx_cache.Reply;
 import java.util.ArrayList;
 import java.util.List;
-
-import io.rx_cache.Reply;
-import rx.Subscriber;
-import rx.android.schedulers.AndroidSchedulers;
-import rx.schedulers.Schedulers;
 import sample_data.Repository;
 import sample_data.entities.User;
 import victoralbertos.io.rxjavacache.R;
@@ -81,18 +78,12 @@ public class UsersActivity extends BaseActivity {
         if (!users.isEmpty()) lastUserId = users.get(users.size()-1).getUser().getId();
         if (pullToRefresh) lastUserId = 1;
 
-        subscription.unsubscribe();
-        subscription = getRepository().getUsers(lastUserId, pullToRefresh)
+        disposable.dispose();
+        disposable = getRepository().getUsers(lastUserId, pullToRefresh)
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new Subscriber<Reply<List<User>>>() {
-                    @Override public void onCompleted() {}
-
-                    @Override public void onError(Throwable e) {
-                        Toast.makeText(UsersActivity.this, e.getMessage(), Toast.LENGTH_SHORT).show();
-                    }
-
-                    @Override public void onNext(Reply<List<User>> reply) {
+                .subscribe(new Consumer<Reply<List<User>>>() {
+                    @Override public void accept(Reply<List<User>> reply) throws Exception {
                         if (pullToRefresh) users.clear();
 
                         for (User user : reply.getData()) {
@@ -102,6 +93,10 @@ public class UsersActivity extends BaseActivity {
                         usersAdapter.notifyDataSetChanged();
                         isLoading = false;
                         srl_users.setRefreshing(false);
+                    }
+                }, new Consumer<Throwable>() {
+                    @Override public void accept(Throwable e) throws Exception {
+                        Toast.makeText(UsersActivity.this, e.getMessage(), Toast.LENGTH_SHORT).show();
                     }
                 });
     }

@@ -2,6 +2,11 @@ package sample_data;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonParseException;
+import com.jakewharton.retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory;
+import io.reactivex.Observable;
+import io.reactivex.ObservableSource;
+import io.reactivex.functions.Function;
+import io.rx_cache.ClearProvider;
 import io.rx_cache.DynamicKey;
 import io.rx_cache.EvictDynamicKey;
 import io.rx_cache.EvictProvider;
@@ -13,10 +18,7 @@ import java.io.IOException;
 import java.util.List;
 import retrofit2.Response;
 import retrofit2.Retrofit;
-import retrofit2.adapter.rxjava.RxJavaCallAdapterFactory;
 import retrofit2.converter.gson.GsonConverterFactory;
-import rx.Observable;
-import rx.functions.Func1;
 import sample_data.cache.CacheProviders;
 import sample_data.entities.Repo;
 import sample_data.entities.User;
@@ -39,7 +41,7 @@ public class Repository {
 
         restApi = new Retrofit.Builder()
                 .baseUrl(RestApi.URL_BASE)
-                .addCallAdapterFactory(RxJavaCallAdapterFactory.create())
+                .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
                 .addConverterFactory(GsonConverterFactory.create())
                 .build().create(RestApi.class);
     }
@@ -53,52 +55,43 @@ public class Repository {
     }
 
     public Observable<Reply<User>> loginUser(final String userName) {
-        return restApi.getUser(userName).map(new Func1<Response<User>, Observable<Reply<User>>>() {
-            @Override public Observable<Reply<User>> call(Response<User> userResponse) {
-
-                if (!userResponse.isSuccessful()) {
-                    try {
-                        ResponseError responseError = new Gson().fromJson(userResponse.errorBody().string(), ResponseError.class);
-                        throw new RuntimeException(responseError.getMessage());
-                    } catch (JsonParseException | IOException exception) {
-                        throw new RuntimeException(exception.getMessage());
+        return restApi.getUser(userName).flatMap(
+            new Function<Response<User>, ObservableSource<Reply<User>>>() {
+                @Override public ObservableSource<Reply<User>> apply(Response<User> userResponse)
+                    throws Exception {
+                    if (!userResponse.isSuccessful()) {
+                        try {
+                            ResponseError responseError = new Gson().fromJson(userResponse.errorBody().string(), ResponseError.class);
+                            throw new RuntimeException(responseError.getMessage());
+                        } catch (JsonParseException | IOException exception) {
+                            throw new RuntimeException(exception.getMessage());
+                        }
                     }
-                }
 
-                return cacheProviders.getCurrentUser(Observable.just(userResponse.body()), new EvictProvider(true));
-            }
-        }).flatMap(new Func1<Observable<Reply<User>>, Observable<Reply<User>>>() {
-            @Override public Observable<Reply<User>> call(Observable<Reply<User>> replyObservable) {
-                return replyObservable;
-            }
-        }).map(new Func1<Reply<User>, Reply<User>>() {
-            @Override public Reply<User> call(Reply<User> userReply) {
-                return userReply;
-            }
-        });
+                    return cacheProviders.getCurrentUser(Observable.just(userResponse.body()), new EvictProvider(true));
+                }
+            });
     }
 
     public Observable<String> logoutUser() {
-        return cacheProviders.getCurrentUser(Observable.<User>just(null), new EvictProvider(true))
-                .map(new Func1<Reply<User>, String>() {
-                    @Override
-                    public String call(Reply<User> user) {
+        return cacheProviders.getCurrentUser(ClearProvider.<User>now(), new EvictProvider(true))
+                .map(new Function<Reply<User>, String>() {
+                    @Override public String apply(Reply<User> user) throws Exception {
                         return "Logout";
                     }
                 })
-                .onErrorReturn(new Func1<Throwable, String>() {
-                    @Override
-                    public String call(Throwable throwable) {
+                .onErrorReturn(new Function<Throwable, String>() {
+                    @Override public String apply(Throwable throwable) {
                         return "Logout";
                     }
                 });
     }
 
     public Observable<Reply<User>> getLoggedUser(boolean invalidate) {
-        Observable<Reply<User>> cachedUser = cacheProviders.getCurrentUser(Observable.<User>just(null), new EvictProvider(false));
+        Observable<Reply<User>> cachedUser = cacheProviders.getCurrentUser(ClearProvider.<User>now(), new EvictProvider(false));
 
-        Observable<Reply<User>> freshUser = cachedUser.flatMap(new Func1<Reply<User>, Observable<Reply<User>>>() {
-            @Override public Observable<Reply<User>> call(Reply<User> userReply) {
+        Observable<Reply<User>> freshUser = cachedUser.flatMap(new Function<Reply<User>, ObservableSource<Reply<User>>>() {
+            @Override public ObservableSource<Reply<User>> apply(Reply<User> userReply) throws Exception {
                 return loginUser(userReply.getData().getLogin());
             }
         });

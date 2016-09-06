@@ -1,11 +1,9 @@
 package sample_java;
 
+import io.reactivex.functions.Consumer;
+import io.rx_cache.Reply;
 import java.io.File;
 import java.util.List;
-
-import io.rx_cache.Reply;
-import rx.Subscriber;
-import rx.functions.Action1;
 import sample_data.Repository;
 import sample_data.entities.User;
 
@@ -68,8 +66,8 @@ public class App {
     }
 
     private void printUsers(boolean update) {
-        repository.getUsers(idLastUserQueried, update).subscribe(new Action1<Reply<List<User>>>() {
-            @Override public void call(Reply<List<User>> reply) {
+        repository.getUsers(idLastUserQueried, update).subscribe(new Consumer<Reply<List<User>>>() {
+            @Override public void accept(Reply<List<User>> reply) throws Exception {
                 System.out.println("Source: " + reply.getSource().name());
 
                 for (User user : reply.getData()) {
@@ -82,39 +80,35 @@ public class App {
     }
 
     private void showCurrentUser() {
-        repository.getLoggedUser(false).subscribe(new Subscriber<Reply<User>>() {
-            @Override public void onCompleted() {}
-
-            @Override public void onError(Throwable e) {
-                System.out.println(e.getCause());
-            }
-
-            @Override public void onNext(Reply<User> user) {
+        repository.getLoggedUser(false).subscribe(new Consumer<Reply<User>>() {
+            @Override public void accept(Reply<User> userReply) throws Exception {
                 System.out.println("Current user");
-                System.out.println(user.getData());
+                System.out.println(userReply.getData());
+            }
+        }, new Consumer<Throwable>() {
+            @Override public void accept(Throwable e) throws Exception {
+                System.out.println(e.getCause());
             }
         });
     }
 
     private void loginRandomUser() {
         User user = new User(1, "Random", "Random Avatar");
-        repository.loginUser(user.getLogin()).subscribe(new Action1<Reply<User>>() {
-            @Override public void call(Reply<User> userReply) {
+        repository.loginUser(user.getLogin()).subscribe(new Consumer<Reply<User>>() {
+            @Override public void accept(Reply<User> userReply) throws Exception {
                 System.out.println("User logged");
             }
         });
     }
 
     private void logoutUser() {
-        repository.logoutUser().subscribe(new Subscriber<String>() {
-            @Override public void onCompleted() {}
-
-            @Override public void onError(Throwable e) {
-                System.out.println(e.getMessage());
-            }
-
-            @Override public void onNext(String message) {
+        repository.logoutUser().subscribe(new Consumer<String>() {
+            @Override public void accept(String message) throws Exception {
                 System.out.println(message);
+            }
+        }, new Consumer<Throwable>() {
+            @Override public void accept(Throwable e) throws Exception {
+                System.out.println(e.getMessage());
             }
         });
     }

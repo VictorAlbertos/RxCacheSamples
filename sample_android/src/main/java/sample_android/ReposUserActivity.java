@@ -9,14 +9,12 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 import android.widget.Toast;
-
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.functions.Consumer;
+import io.reactivex.schedulers.Schedulers;
+import io.rx_cache.Reply;
 import java.util.ArrayList;
 import java.util.List;
-
-import io.rx_cache.Reply;
-import rx.Subscriber;
-import rx.android.schedulers.AndroidSchedulers;
-import rx.schedulers.Schedulers;
 import sample_data.entities.Repo;
 import sample_data.entities.User;
 import victoralbertos.io.rxjavacache.R;
@@ -58,18 +56,12 @@ public class ReposUserActivity extends BaseActivity {
     }
 
     private void requestRepos(final boolean pullToRefresh) {
-        subscription.unsubscribe();
-        subscription = getRepository().getRepos(selectedUser.getLogin(), pullToRefresh)
+        disposable.dispose();
+        disposable =  getRepository().getRepos(selectedUser.getLogin(), pullToRefresh)
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new Subscriber<Reply<List<Repo>>>() {
-                    @Override public void onCompleted() {}
-
-                    @Override public void onError(Throwable e) {
-                        Toast.makeText(ReposUserActivity.this, e.getMessage(), Toast.LENGTH_SHORT).show();
-                    }
-
-                    @Override public void onNext(Reply<List<Repo>> reply) {
+                .subscribe(new Consumer<Reply<List<Repo>>>() {
+                    @Override public void accept(Reply<List<Repo>> reply) throws Exception {
                         if (pullToRefresh) repos.clear();
 
                         for (Repo repo : reply.getData()) {
@@ -78,6 +70,10 @@ public class ReposUserActivity extends BaseActivity {
 
                         reposAdapter.notifyDataSetChanged();
                         srl_repos.setRefreshing(false);
+                    }
+                }, new Consumer<Throwable>() {
+                    @Override public void accept(Throwable e) throws Exception {
+                        Toast.makeText(ReposUserActivity.this, e.getMessage(), Toast.LENGTH_SHORT).show();
                     }
                 });
     }

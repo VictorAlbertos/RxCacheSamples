@@ -6,14 +6,11 @@ import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
-
 import com.squareup.picasso.Picasso;
-
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.functions.Consumer;
+import io.reactivex.schedulers.Schedulers;
 import io.rx_cache.Reply;
-import rx.Subscriber;
-import rx.android.schedulers.AndroidSchedulers;
-import rx.functions.Action1;
-import rx.schedulers.Schedulers;
 import sample_data.entities.User;
 import victoralbertos.io.rxjavacache.R;
 
@@ -36,20 +33,18 @@ public class ProfileActivity extends BaseActivity {
             @Override public void onClick(View v) {
                 String userName = ((EditText) findViewById(R.id.et_name)).getText().toString();
 
-                subscription.unsubscribe();
-                subscription = getRepository().loginUser(userName)
+                disposable.dispose();
+                disposable = getRepository().loginUser(userName)
                         .subscribeOn(Schedulers.newThread())
                         .observeOn(AndroidSchedulers.mainThread())
-                        .subscribe(new Subscriber<Reply<User>>() {
-                            @Override public void onCompleted() {}
-
-                            @Override public void onError(Throwable e) {
-                                Toast.makeText(ProfileActivity.this, e.getMessage(), Toast.LENGTH_LONG).show();
-                            }
-
-                            @Override public void onNext(Reply<User> user) {
-                                showLogged(user);
-                            }
+                        .subscribe(new Consumer<Reply<User>>() {
+                          @Override public void accept(Reply<User> userReply) throws Exception {
+                            showLogged(userReply);
+                          }
+                        }, new Consumer<Throwable>() {
+                          @Override public void accept(Throwable e) throws Exception {
+                            Toast.makeText(ProfileActivity.this, e.getMessage(), Toast.LENGTH_LONG).show();
+                          }
                         });
             }
         });
@@ -78,36 +73,33 @@ public class ProfileActivity extends BaseActivity {
 
         findViewById(R.id.bt_logout).setOnClickListener(new View.OnClickListener() {
             @Override public void onClick(View v) {
-                subscription.unsubscribe();
-                subscription = getRepository().logoutUser()
+              disposable.dispose();
+              disposable = getRepository().logoutUser()
                         .subscribeOn(Schedulers.newThread())
                         .observeOn(AndroidSchedulers.mainThread())
-                        .subscribe(new Action1<String>() {
-                            @Override
-                            public void call(String feedback) {
-                                Toast.makeText(ProfileActivity.this, feedback, Toast.LENGTH_LONG).show();
-                                showLogin();
-                            }
+                        .subscribe(new Consumer<String>() {
+                          @Override public void accept(String feedback) throws Exception {
+                            Toast.makeText(ProfileActivity.this, feedback, Toast.LENGTH_LONG).show();
+                            showLogin();
+                          }
                         });
             }
         });
     }
 
     private void getUserLogged(boolean update) {
-        subscription.unsubscribe();
-        subscription = getRepository().getLoggedUser(update)
+      disposable.dispose();
+      disposable = getRepository().getLoggedUser(update)
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new Subscriber<Reply<User>>() {
-                    @Override public void onCompleted() {}
-
-                    @Override public void onError(Throwable e) {
-                        showLogin();
-                    }
-
-                    @Override public void onNext(Reply<User> user) {
-                        showLogged(user);
-                    }
+                .subscribe(new Consumer<Reply<User>>() {
+                  @Override public void accept(Reply<User> userReply) throws Exception {
+                    showLogged(userReply);
+                  }
+                }, new Consumer<Throwable>() {
+                  @Override public void accept(Throwable e) throws Exception {
+                    Toast.makeText(ProfileActivity.this, e.getMessage(), Toast.LENGTH_LONG).show();
+                  }
                 });
     }
 }

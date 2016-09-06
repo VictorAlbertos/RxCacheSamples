@@ -5,9 +5,8 @@ import android.support.v7.app.AppCompatActivity;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
-
-import rx.Subscription;
-import rx.subscriptions.Subscriptions;
+import io.reactivex.disposables.Disposable;
+import io.reactivex.disposables.Disposables;
 import sample_data.Repository;
 import victoralbertos.io.rxjavacache.R;
 
@@ -15,7 +14,7 @@ import victoralbertos.io.rxjavacache.R;
  * Created by victor on 09/01/16.
  */
 public class BaseActivity extends AppCompatActivity {
-    protected Subscription subscription = Subscriptions.empty();
+    protected Disposable disposable = Disposables.empty();
 
     protected Repository getRepository() {
         return ((SampleAndroidApp)getApplication()).getRepository();
@@ -41,6 +40,6 @@ public class BaseActivity extends AppCompatActivity {
 
     @Override protected void onPause() {
         super.onPause();
-        subscription.unsubscribe();
+        disposable.dispose();
     }
 }
