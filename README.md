@@ -1,6 +1,6 @@
 RxCacheSamples
 ==============
-This project shows how to use [RxCache](https://github.com/VictorAlbertos/RxCache) for both Android and Java projects using [RxJava2](https://github.com/ReactiveX/RxJava/tree/2.x). 
+This project shows how to use [RxCache](https://github.com/VictorAlbertos/RxCache/tree/2.x) for both Android and Java projects using [RxJava2](https://github.com/ReactiveX/RxJava/tree/2.x). 
 
 sample_data
 -----------
