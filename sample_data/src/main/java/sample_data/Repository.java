@@ -6,10 +6,10 @@ import com.jakewharton.retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory;
 import io.reactivex.Observable;
 import io.reactivex.ObservableSource;
 import io.reactivex.functions.Function;
-import io.rx_cache.ClearProvider;
 import io.rx_cache.DynamicKey;
 import io.rx_cache.EvictDynamicKey;
 import io.rx_cache.EvictProvider;
+import io.rx_cache.ProviderHelper;
 import io.rx_cache.Reply;
 import io.rx_cache.internal.RxCache;
 import io.victoralbertos.jolyglot.GsonSpeaker;
@@ -74,7 +74,7 @@ public class Repository {
     }
 
     public Observable<String> logoutUser() {
-        return cacheProviders.getCurrentUser(ClearProvider.<User>now(), new EvictProvider(true))
+        return cacheProviders.getCurrentUser(ProviderHelper.<User>withoutLoader(), new EvictProvider(true))
                 .map(new Function<Reply<User>, String>() {
                     @Override public String apply(Reply<User> user) throws Exception {
                         return "Logout";
@@ -88,7 +88,7 @@ public class Repository {
     }
 
     public Observable<Reply<User>> getLoggedUser(boolean invalidate) {
-        Observable<Reply<User>> cachedUser = cacheProviders.getCurrentUser(ClearProvider.<User>now(), new EvictProvider(false));
+        Observable<Reply<User>> cachedUser = cacheProviders.getCurrentUser(ProviderHelper.<User>withoutLoader(), new EvictProvider(false));
 
         Observable<Reply<User>> freshUser = cachedUser.flatMap(new Function<Reply<User>, ObservableSource<Reply<User>>>() {
             @Override public ObservableSource<Reply<User>> apply(Reply<User> userReply) throws Exception {
