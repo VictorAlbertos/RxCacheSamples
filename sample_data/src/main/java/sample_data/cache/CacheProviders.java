@@ -1,11 +1,11 @@
 package sample_data.cache;
 
 import io.reactivex.Observable;
-import io.rx_cache.DynamicKey;
-import io.rx_cache.EvictDynamicKey;
-import io.rx_cache.EvictProvider;
-import io.rx_cache.LifeCache;
-import io.rx_cache.Reply;
+import io.rx_cache2.DynamicKey;
+import io.rx_cache2.EvictDynamicKey;
+import io.rx_cache2.EvictProvider;
+import io.rx_cache2.LifeCache;
+import io.rx_cache2.Reply;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import sample_data.entities.Repo;

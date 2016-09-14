@@ -10,7 +10,7 @@ import com.squareup.picasso.Picasso;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.functions.Consumer;
 import io.reactivex.schedulers.Schedulers;
-import io.rx_cache.Reply;
+import io.rx_cache2.Reply;
 import sample_data.entities.User;
 import victoralbertos.io.rxjavacache.R;
 
