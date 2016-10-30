@@ -1,7 +1,7 @@
 package sample_java;
 
 import io.reactivex.functions.Consumer;
-import io.rx_cache.Reply;
+import io.rx_cache2.Reply;
 import java.io.File;
 import java.util.List;
 import sample_data.Repository;
