@@ -22,6 +22,4 @@ sourceSets {
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
     compile project(':sample_data')
-
-    compile "io.reactivex:rxjava:1.0.14"
 }
