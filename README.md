@@ -1,3 +1,5 @@
+## [DISCLAIMER] Branch 1.x will not be any longer actively maintained. Upgrade to RxJava 2.x asap.
+
 RxCacheSamples
 ==============
 This project shows how to use [RxCache](https://github.com/VictorAlbertos/RxCache) for both Android and Java projects. 
